@@ -8,7 +8,7 @@ namespace PasswordDictionaryGenerator
     public class PhraseGenerator
     {
         private StringBuilder value = new StringBuilder();
-        private int _minWords = 0;
+        //private int _minWords = 0;
         private int _maxWords = 12;
 
         List<string> _wordList;
@@ -16,7 +16,7 @@ namespace PasswordDictionaryGenerator
         public string GeneratePhrase(List<string> wordList, int minWords = 0, int maxWords = 12, string fileName = null, string dictionaryFile = null)
         {
             value = new StringBuilder();
-            _minWords = minWords;
+            //_minWords = minWords;
             _maxWords = maxWords;
             _wordList = wordList;
 
@@ -24,8 +24,6 @@ namespace PasswordDictionaryGenerator
             {
                 _wordList = System.IO.File.ReadAllLines(dictionaryFile).ToList();
             }
-
-
             Dive("", minWords);
 
             if (!string.IsNullOrWhiteSpace(fileName))
