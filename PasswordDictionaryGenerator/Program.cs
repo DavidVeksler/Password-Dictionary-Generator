@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace PasswordDictionaryGenerator
 {
@@ -11,12 +10,9 @@ namespace PasswordDictionaryGenerator
 
             //var list = new DictionaryGenerator().GeneratePassword(maxlength:3);
 
-            var wordList = new List<string>();
+            //var wordList = new List<string> {"apple", "banana", "rasberry"};
 
-            wordList.Add("apple");
-            wordList.Add("banana");
-            wordList.Add("rasberry");
-            var list = new PhraseGenerator().GeneratePhrase(wordList: wordList, maxWords:2, dictionaryFile: "dictionary.txt");
+            new PhraseGenerator().GeneratePhrase(maxWords:10, minWords:4, dictionaryFile: @"C:\Users\David Veksler\Desktop\doge_dictionary.txt", fileName: "doge_phrases.txt");
 
            // Console.Write(list);
 

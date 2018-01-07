@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -7,50 +7,98 @@ namespace PasswordDictionaryGenerator
 {
     public class PhraseGenerator
     {
-        private StringBuilder value = new StringBuilder();
-        //private int _minWords = 0;
-        private int _maxWords = 12;
+        private int _maxWords = 10;
+        private string[] _wordList;
+        private StringBuilder _phraseStringBuilder = new StringBuilder(2000000000);
+        private string _fileName;
 
-        List<string> _wordList;
-
-        public string GeneratePhrase(List<string> wordList, int minWords = 0, int maxWords = 12, string fileName = null, string dictionaryFile = null)
+        public string GeneratePhrase(string[] wordList = null, int minWords = 0, int maxWords = 10,
+            string fileName = null, string dictionaryFile = null)
         {
-            value = new StringBuilder();
-            //_minWords = minWords;
+            _phraseStringBuilder = new StringBuilder();
             _maxWords = maxWords;
             _wordList = wordList;
+            _fileName = fileName;
 
             if (!string.IsNullOrWhiteSpace(dictionaryFile))
-            {
-                _wordList = System.IO.File.ReadAllLines(dictionaryFile).ToList();
-            }
+                _wordList = File.ReadAllLines(dictionaryFile).Distinct().Where(s => s != string.Empty).ToArray();
             Dive("", minWords);
 
-            if (!string.IsNullOrWhiteSpace(fileName))
-            {
-                System.IO.File.WriteAllText(fileName, value.ToString());
-                return value.Length.ToString() + " chars";
-            }
-            else
-            {
-                return value.ToString();
-            }
+            if (string.IsNullOrWhiteSpace(fileName)) return _phraseStringBuilder.ToString();
+
+            PersistToFile();
+
+            Console.WriteLine("Done");
+
+            return _phraseStringBuilder.Length + " chars";
         }
 
         private void Dive(string prefix, int level)
         {
-            level += 1;
-            foreach (string word in _wordList)
+            if (_phraseStringBuilder.Length > 2000000000)
             {
-                Console.WriteLine(prefix + " " + word);
-                value.AppendLine(prefix + " " + word);
+                PersistToFile();
+            }
+
+            level += 1;
+            //Console.Write($"lvl {level} ");
+
+            if (DateTime.Now.Millisecond == 0)
+            {
+                //Console.WriteLine(prefix + " " + levle);
+                Console.WriteLine($"lvl {level} ");
+            }
+
+            foreach (var word in _wordList)
+            {
+                string phrase = $"{prefix} {word}";
+
+                // hack: assume less than 3 usages of a word in a phrase:
+
+                if (!prefix.Contains(word))
+                {
+                    if (DateTime.Now.Millisecond== 0)
+                    {
+                        Console.WriteLine(phrase);
+                    }
+
+                    _phraseStringBuilder.AppendLine(phrase);
+                }
 
                 if (level < _maxWords)
-                {
-                    Dive(prefix + " " + word, level);
-                }
+                    Dive(phrase, level);
             }
         }
 
+        private int countSubStrings(string haystack, string needle)
+        {
+            if (string.IsNullOrEmpty(needle)) return 0;
+
+            int needleCount = (haystack.Length - haystack.Replace(needle, "").Length) / needle.Length;
+            return needleCount;
+        }
+
+        public const int ChunkStringLength = 1000000;
+
+        private void PersistToFile()
+        {
+            Console.WriteLine("writing to file " + new FileInfo(_fileName).FullName);
+            using (StreamWriter sw = new StreamWriter(_fileName, true))
+            {
+                while (_phraseStringBuilder.Length > ChunkStringLength)
+                {
+                    sw.Write(_phraseStringBuilder.ToString(0, ChunkStringLength));
+                    _phraseStringBuilder.Remove(0, ChunkStringLength);
+                }
+                sw.Write(_phraseStringBuilder);
+            }
+            //File.WriteAllText(_fileName, _phraseStringBuilder.ToString());
+            _phraseStringBuilder.Clear();
+            _phraseStringBuilder = null;
+            _phraseStringBuilder = new StringBuilder(2000000000);
+
+
+
+        }
     }
 }
